@@ -2,11 +2,10 @@ import { create } from "zustand";
 import { account, databases } from "../lib/appwrite";
 import { ID, AppwriteException } from "react-native-appwrite";
 import type { Models } from "react-native-appwrite";
-
-type AppwriteUser = Models.User<Models.Preferences>;
+import { IUser } from "@/types";
 
 interface AuthState {
-  user: AppwriteUser | null;
+  user: IUser | null;
   isLoading: boolean;
   signUp: (email: string, password: string, username: string) => Promise<void>;
   logIn: (email: string, password: string) => Promise<void>;
