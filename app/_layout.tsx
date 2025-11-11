@@ -4,6 +4,9 @@ import * as SplashScreen from "expo-splash-screen";
 import { useAuthStore, initializeAuth } from "@/store/authStore";
 import "react-native-reanimated";
 import "./global.css";
+import LoadingModal from "@/components/LoadingModal";
+import Toast from "react-native-toast-message";
+import { useUiStore } from "@/store/uiStore";
 
 initializeAuth();
 
@@ -12,10 +15,10 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const rootNavigationState = useRootNavigationState();
   const user = useAuthStore((s) => s.user);
-  const isLoading = useAuthStore((s) => s.isLoading);
+  const isLoading = useUiStore((s) => s.isLoading);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || !rootNavigationState.key) return;
 
     SplashScreen.hideAsync();
 
@@ -26,17 +29,20 @@ export default function RootLayout() {
     }
   }, [isLoading, user]);
 
-  if (!rootNavigationState.key) return null;
-
   return (
-    <Stack
-      screenOptions={{
-        statusBarStyle: "auto",
-      }}
-    >
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(main)" options={{ headerShown: false }} />
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      <Stack
+        screenOptions={{
+          statusBarStyle: "auto",
+        }}
+      >
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(main)" options={{ headerShown: false }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+      </Stack>
+
+      <LoadingModal />
+      <Toast />
+    </>
   );
 }

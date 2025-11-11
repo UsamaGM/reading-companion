@@ -4,35 +4,45 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import { useAuthStore } from "@/store/authStore";
 import { databases } from "@/lib/appwrite";
-import { ID, Permission, Role } from "react-native-appwrite";
+import { AppwriteException, ID, Permission, Role } from "react-native-appwrite";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUiStore } from "@/store/uiStore";
+import Toast from "react-native-toast-message";
 
 const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
 const COLLECTION_ID_USERBOOKS = "userbook";
 
 export default function AddBookScreen() {
-  const { user } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isLoading = useUiStore((s) => s.isLoading);
+  const setLoading = useUiStore((s) => s.setLoading);
+
   const [title, setTitle] = useState("");
   const [totalPages, setTotalPages] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!title || !totalPages || !user) {
-      Alert.alert("Error", "Please fill in all fields.");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please fill all the fields",
+      });
       return;
     }
 
     const pages = parseInt(totalPages, 10);
     if (isNaN(pages) || pages <= 0) {
-      Alert.alert("Error", "Please enter a valid number of pages.");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please enter a valid number of pages.",
+      });
       return;
     }
 
@@ -57,15 +67,25 @@ export default function AddBookScreen() {
       await databases.createDocument(
         DATABASE_ID,
         COLLECTION_ID_USERBOOKS,
-        ID.unique(), // Let Appwrite generate a unique ID
+        ID.unique(),
         newBookData,
         permissions,
       );
 
+      Toast.show({
+        type: "success",
+        text1: "Book Added!",
+        text2: `${title} has been added to your bookshelf.`,
+      });
+
       router.back();
     } catch (error: any) {
-      console.error("Failed to add book:", error);
-      Alert.alert("Error", error.message || "Could not add book.");
+      const e = error as AppwriteException;
+      Toast.show({
+        type: "error",
+        text1: "Failed to Add Book",
+        text2: e.message || "An unknown error occurred.",
+      });
     } finally {
       setLoading(false);
     }
@@ -102,18 +122,14 @@ export default function AddBookScreen() {
           {/* Submit Button */}
           <TouchableOpacity
             onPress={handleSubmit}
-            disabled={loading}
+            disabled={isLoading}
             className={`py-3 px-4 rounded-lg shadow-md ${
-              loading ? "bg-gray-400" : "bg-blue-500"
+              isLoading ? "bg-gray-400" : "bg-blue-500"
             }`}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-white font-bold text-center text-lg">
-                Add Book
-              </Text>
-            )}
+            <Text className="text-white font-bold text-center text-lg">
+              Add Book
+            </Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
