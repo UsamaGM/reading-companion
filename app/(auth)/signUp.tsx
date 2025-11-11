@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { View, TextInput, Button, StyleSheet, Text, Alert } from "react-native";
-import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/authStore";
 
@@ -20,7 +19,6 @@ export default function SignUpScreen() {
     setLoading(true);
     try {
       await signUp(email, password, username);
-      router.replace("/(auth)/login");
     } catch (error: any) {
       Alert.alert("Sign Up Failed", error.message);
     } finally {

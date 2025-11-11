@@ -1,41 +1,42 @@
 import React, { useEffect } from "react";
-import { Stack, router } from "expo-router";
+import { Stack, router, useRootNavigationState } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useAuthStore, initializeAuth } from "@/store/authStore";
-import { ActivityIndicator, View } from "react-native";
 import "react-native-reanimated";
+import "./global.css";
 
 initializeAuth();
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { user, isLoading } = useAuthStore();
+  const rootNavigationState = useRootNavigationState();
+  const user = useAuthStore((s) => s.user);
+  const isLoading = useAuthStore((s) => s.isLoading);
 
   useEffect(() => {
-    if (!isLoading) {
-      SplashScreen.hideAsync();
+    if (isLoading) return;
 
-      if (user) {
-        router.replace("/(main)/bookshelf");
-      } else {
-        router.replace("/(auth)/login");
-      }
+    SplashScreen.hideAsync();
+
+    if (user) {
+      router.replace("/(main)/bookshelf");
+    } else {
+      router.replace("/(auth)/login");
     }
   }, [isLoading, user]);
 
-  if (isLoading) {
-    return (
-      <View className="flex flex-1 justify-center items-center">
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
+  if (!rootNavigationState.key) return null;
 
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        statusBarStyle: "auto",
+      }}
+    >
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(main)" options={{ headerShown: false }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
     </Stack>
   );
 }

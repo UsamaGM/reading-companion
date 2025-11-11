@@ -1,7 +1,6 @@
 import { create } from "zustand";
-import { account, databases } from "../lib/appwrite";
+import { account } from "../lib/appwrite";
 import { ID, AppwriteException } from "react-native-appwrite";
-import type { Models } from "react-native-appwrite";
 import { IUser } from "@/types";
 
 interface AuthState {
@@ -22,7 +21,7 @@ export const useAuthStore = create<AuthState>((set) => ({
    */
   checkCurrentUser: async () => {
     try {
-      const currentUser = await account.get();
+      const currentUser = (await account.get()) as unknown as IUser;
       set({ user: currentUser, isLoading: false });
     } catch (error) {
       set({ user: null, isLoading: false });
@@ -35,11 +34,16 @@ export const useAuthStore = create<AuthState>((set) => ({
    */
   signUp: async (email, password, username) => {
     try {
-      await account.create(ID.unique(), email, password, username);
+      await account.create({
+        userId: ID.unique(),
+        email,
+        password,
+        name: username,
+      });
 
-      await account.createEmailPasswordSession(email, password);
+      await account.createEmailPasswordSession({ email, password });
 
-      const currentUser = await account.get();
+      const currentUser = (await account.get()) as unknown as IUser;
       set({ user: currentUser });
     } catch (error) {
       console.error(
@@ -55,8 +59,8 @@ export const useAuthStore = create<AuthState>((set) => ({
    */
   logIn: async (email, password) => {
     try {
-      await account.createEmailSession(email, password);
-      const currentUser = await account.get();
+      await account.createEmailPasswordSession({ email, password });
+      const currentUser = (await account.get()) as unknown as IUser;
       set({ user: currentUser });
     } catch (error) {
       console.error(
@@ -72,7 +76,7 @@ export const useAuthStore = create<AuthState>((set) => ({
    */
   logOut: async () => {
     try {
-      await account.deleteSession("current");
+      await account.deleteSession({ sessionId: "current" });
       set({ user: null });
     } catch (error) {
       console.error(

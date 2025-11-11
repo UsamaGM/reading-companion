@@ -34,6 +34,9 @@ yarn-error.*
 .env
 .env*.local
 
+# vscode
+.vscode
+
 # Appwrite configuration
 appwrite.config.json
 
