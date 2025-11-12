@@ -1,45 +1,47 @@
-import React, { useState } from "react";
-import {
-  View,
-  TextInput,
-  Button,
-  StyleSheet,
-  Text,
-  Alert,
-  TouchableOpacity,
-} from "react-native";
-import { Link } from "expo-router";
+import { useState } from "react";
+import { View, TextInput, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/authStore";
+import { useUiStore } from "@/store/uiStore";
+import Toast from "react-native-toast-message";
+import { AppwriteException } from "react-native-appwrite";
+import AuthButton from "@/components/AuthButton";
+import StyledLink from "@/components/StyledLink";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const login = useAuthStore((s) => s.logIn);
+  const setLoading = useUiStore((s) => s.setLoading);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields.");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please fill in all fields.",
+      });
       return;
     }
-    setLoading(true);
+
     try {
+      setLoading(true);
       await login(email, password);
     } catch (error: any) {
-      Alert.alert("Log In Failed", error.message);
+      const e = error as AppwriteException;
+      Toast.show({ type: "error", text1: "Login Failed", text2: e.message });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Welcome Back!</Text>
+    <SafeAreaView className="safe-area-container">
+      <View className="auth-container">
+        <Text className="auth-title">Welcome Back!</Text>
         <TextInput
-          style={styles.input}
+          className="auth-input"
           placeholder="Email"
           value={email}
           onChangeText={setEmail}
@@ -47,68 +49,19 @@ export default function LoginScreen() {
           autoCapitalize="none"
         />
         <TextInput
-          style={styles.input}
+          className="auth-input"
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
-        <Button
-          title={loading ? "Logging In..." : "Log In"}
-          onPress={handleLogin}
-          disabled={loading}
-        />
+        <AuthButton onPress={handleLogin} title="Login" />
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <Link href="/(auth)/signUp" asChild>
-            <TouchableOpacity>
-              <Text style={styles.link}>Sign Up</Text>
-            </TouchableOpacity>
-          </Link>
+        <View className="flex flex-row justify-center mt-5">
+          <Text className="text-lg text-gray-700">Don't have an account? </Text>
+          <StyledLink href="/(auth)/signUp" title="Sign Up" />
         </View>
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 24,
-    textAlign: "center",
-  },
-  input: {
-    height: 44,
-    borderColor: "#ddd",
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 16,
-    paddingHorizontal: 12,
-    fontSize: 16,
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 20,
-  },
-  footerText: {
-    fontSize: 16,
-    color: "#666",
-  },
-  link: {
-    fontSize: 16,
-    color: "#007AFF",
-    fontWeight: "bold",
-  },
-});

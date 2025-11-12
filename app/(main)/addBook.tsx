@@ -8,19 +8,16 @@ import {
   Platform,
 } from "react-native";
 import { useAuthStore } from "@/store/authStore";
-import { databases } from "@/lib/appwrite";
+import { DATABASE_ID, databases, USERBOOK_TABLE } from "@/lib/appwrite";
 import { AppwriteException, ID, Permission, Role } from "react-native-appwrite";
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUiStore } from "@/store/uiStore";
 import Toast from "react-native-toast-message";
 
-const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
-const COLLECTION_ID_USERBOOKS = "userbook";
-
 export default function AddBookScreen() {
   const user = useAuthStore((s) => s.user);
-  const isLoading = useUiStore((s) => s.isLoading);
   const setLoading = useUiStore((s) => s.setLoading);
 
   const [title, setTitle] = useState("");
@@ -66,7 +63,7 @@ export default function AddBookScreen() {
 
       await databases.createDocument(
         DATABASE_ID,
-        COLLECTION_ID_USERBOOKS,
+        USERBOOK_TABLE,
         ID.unique(),
         newBookData,
         permissions,
@@ -92,40 +89,35 @@ export default function AddBookScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView className="safe-area-container">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
+        <StatusBar style="dark" />
         <View className="p-4">
           <Text className="text-3xl font-bold mb-6">Add New Book</Text>
 
-          {/* Book Title Input */}
-          <Text className="text-lg font-semibold mb-2">Book Title</Text>
+          <Text className="book-input-label">Book Title</Text>
           <TextInput
             value={title}
             onChangeText={setTitle}
             placeholder="e.g., Dune"
-            className="bg-white p-3 rounded-lg border border-gray-300 mb-4 text-base"
+            className="book-input"
           />
 
-          {/* Total Pages Input */}
-          <Text className="text-lg font-semibold mb-2">Total Pages</Text>
+          <Text className="book-input-label">Total Pages</Text>
           <TextInput
             value={totalPages}
             onChangeText={setTotalPages}
             placeholder="e.g., 412"
             keyboardType="numeric"
-            className="bg-white p-3 rounded-lg border border-gray-300 mb-6 text-base"
+            className="book-input"
           />
 
-          {/* Submit Button */}
           <TouchableOpacity
             onPress={handleSubmit}
-            disabled={isLoading}
-            className={`py-3 px-4 rounded-lg shadow-md ${
-              isLoading ? "bg-gray-400" : "bg-blue-500"
-            }`}
+            className="py-3 px-4 rounded-lg shadow-md bg-blue-500"
           >
             <Text className="text-white font-bold text-center text-lg">
               Add Book

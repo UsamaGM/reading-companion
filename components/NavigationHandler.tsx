@@ -1,15 +1,21 @@
 import { useAuthStore } from "@/store/authStore";
-import { useRootNavigationState, useRouter, useSegments } from "expo-router";
-import { useEffect } from "react";
+import { useNavigationContainerRef, useRouter, useSegments } from "expo-router";
+import { useEffect, useRef } from "react";
 
 export default function NavigationHandler() {
   const user = useAuthStore((s) => s.user);
   const segments = useSegments();
   const router = useRouter();
-  const navigationState = useRootNavigationState();
+  const navigationState = useNavigationContainerRef();
+  const hasMounted = useRef(false);
 
   useEffect(() => {
-    if (!navigationState?.key) return;
+    if (!navigationState.current) return;
+
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
 
     const inAuthGroup = segments[0] === "(auth)";
 
@@ -18,7 +24,7 @@ export default function NavigationHandler() {
     } else if (user && inAuthGroup) {
       router.replace("/(main)");
     }
-  }, [user, segments, navigationState?.key]);
+  }, [user, segments, navigationState]);
 
   return null;
 }

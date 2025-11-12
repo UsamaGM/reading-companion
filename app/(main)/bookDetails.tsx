@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { databases } from "@/lib/appwrite";
+import { DATABASE_ID, databases, USERBOOK_TABLE } from "@/lib/appwrite";
 import type { IUserBook } from "@/types";
 import LogSessionModal from "@/components/LogSessionModal";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -9,9 +9,7 @@ import ProgressBar from "@/components/ProgressBar";
 import { useUiStore } from "@/store/uiStore";
 import { AppwriteException } from "react-native-appwrite";
 import Toast from "react-native-toast-message";
-
-const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
-const COLLECTION_ID_USERBOOKS = "userbook";
+import { StatusBar } from "expo-status-bar";
 
 export default function BookDetailScreen() {
   const { bookId } = useLocalSearchParams<{ bookId: string }>();
@@ -26,7 +24,7 @@ export default function BookDetailScreen() {
       setLoading(true);
       const document = (await databases.getDocument(
         DATABASE_ID,
-        COLLECTION_ID_USERBOOKS,
+        USERBOOK_TABLE,
         bookId,
       )) as unknown as IUserBook;
 
@@ -58,6 +56,7 @@ export default function BookDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
+      <StatusBar style="dark" />
       <View className="p-4">
         <Text className="text-3xl font-bold">{book.title}</Text>
         <Text className="text-lg text-gray-600 mt-2">

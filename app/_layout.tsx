@@ -15,7 +15,7 @@ export default function RootLayout() {
       <NavigationHandler />
       <Slot />
       <LoadingModal />
-      <Toast />
+      <Toast topOffset={80} />
     </>
   );
 }

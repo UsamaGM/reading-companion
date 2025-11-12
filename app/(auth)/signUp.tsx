@@ -1,44 +1,54 @@
 import React, { useState } from "react";
-import { View, TextInput, Button, StyleSheet, Text, Alert } from "react-native";
+import { View, TextInput, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/authStore";
+import { useUiStore } from "@/store/uiStore";
+import Toast from "react-native-toast-message";
+import { AppwriteException } from "react-native-appwrite";
+import AuthButton from "@/components/AuthButton";
 
 export default function SignUpScreen() {
+  const setLoading = useUiStore((s) => s.setLoading);
+  const signUp = useAuthStore((s) => s.signUp);
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const signUp = useAuthStore((s) => s.signUp);
 
   const handleSignUp = async () => {
     if (!username || !email || !password) {
-      Alert.alert("Error", "Please fill in all fields.");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please fill in all fields",
+      });
       return;
     }
-    setLoading(true);
+
     try {
+      setLoading(true);
       await signUp(email, password, username);
     } catch (error: any) {
-      Alert.alert("Sign Up Failed", error.message);
+      const e = error as AppwriteException;
+      Toast.show({ type: "error", text1: "Sign Up Failed", text2: e.message });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Create Account</Text>
+    <SafeAreaView className="safe-area-container">
+      <View className="auth-container">
+        <Text className="auth-title">Create Account</Text>
         <TextInput
-          style={styles.input}
+          className="auth-input"
           placeholder="Username"
           value={username}
           onChangeText={setUsername}
           autoCapitalize="none"
         />
         <TextInput
-          style={styles.input}
+          className="auth-input"
           placeholder="Email"
           value={email}
           onChangeText={setEmail}
@@ -46,45 +56,14 @@ export default function SignUpScreen() {
           autoCapitalize="none"
         />
         <TextInput
-          style={styles.input}
+          className="auth-input"
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
-        <Button
-          title={loading ? "Creating Account..." : "Sign Up"}
-          onPress={handleSignUp}
-          disabled={loading}
-        />
+        <AuthButton onPress={handleSignUp} title="Sign Up" />
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 24,
-    textAlign: "center",
-  },
-  input: {
-    height: 44,
-    borderColor: "#ddd",
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 16,
-    paddingHorizontal: 12,
-    fontSize: 16,
-  },
-});

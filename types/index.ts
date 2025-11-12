@@ -1,6 +1,6 @@
-// 1. Users Collection
-export interface IUser {
-  $id: string;
+import { Models } from "react-native-appwrite";
+
+export interface IUser extends Models.Document {
   username: string;
   email: string;
   totalXP: number;
@@ -9,11 +9,7 @@ export interface IUser {
   lastReadingDay: string;
 }
 
-// 2. UserBooks Collection
-export interface IUserBook {
-  $id: string;
-  $collectionId: string;
-  $createdAt: string;
+export interface IUserBook extends Models.Document {
   userId: string;
   title: string;
   totalPages: number;
@@ -21,13 +17,15 @@ export interface IUserBook {
   status: "reading" | "finished";
 }
 
-// 3. ReadingSessions Collection
-export interface IReadingSession {
-  $id: string;
-  $collectionId: string;
-  $createdAt: string;
+export interface IReadingSession extends Models.Document {
   userId: string;
   bookId: string;
   pagesRead: number;
   timeSpent: number;
+}
+
+export interface IClub extends Models.Document {
+  clubName: string;
+  inviteCode: string;
+  creatorId: string;
 }

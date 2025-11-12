@@ -7,43 +7,25 @@ import {
 	Alert,
 } from "react-native";
 import { useAuthStore } from "@/store/authStore";
-import appwriteClient, { databases } from "@/lib/appwrite";
-import { Models } from "react-native-appwrite";
+import appwriteClient, {
+	DATABASE_ID,
+	databases,
+	USERS_TABLE,
+} from "@/lib/appwrite";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
-const COLLECTION_ID_USERS = "users";
-
-interface IUserProfile extends Models.Document {
-	username: string;
-	email: string;
-	totalXP: number;
-	level: number;
-	currentStreak: number;
-	lastReadingDay: string | null;
-}
-
-const StatCard = ({
-	label,
-	value,
-}: {
-	label: string;
-	value: string | number;
-}) => (
-	<View className="bg-white p-4 rounded-lg shadow-md items-center flex-1">
-		<Text className="text-3xl font-bold text-blue-500">{value}</Text>
-		<Text className="text-sm font-semibold text-gray-500 uppercase mt-1">
-			{label}
-		</Text>
-	</View>
-);
+import { IUser } from "@/types";
+import StatCard from "@/components/StatCard";
+import { useUiStore } from "@/store/uiStore";
+import { AppwriteException } from "react-native-appwrite";
+import Toast from "react-native-toast-message";
+import { StatusBar } from "expo-status-bar";
 
 export default function ProfileScreen() {
 	const user = useAuthStore((s) => s.user);
 	const logOut = useAuthStore((s) => s.logOut);
+	const setLoading = useUiStore((s) => s.setLoading);
 
-	const [profile, setProfile] = useState<IUserProfile | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [profile, setProfile] = useState<IUser | null>(null);
 
 	useEffect(() => {
 		if (!user) {
@@ -58,14 +40,18 @@ export default function ProfileScreen() {
 				setLoading(true);
 				const document = (await databases.getDocument(
 					DATABASE_ID,
-					COLLECTION_ID_USERS,
+					USERS_TABLE,
 					userId,
-				)) as unknown as IUserProfile;
+				)) as unknown as IUser;
 
 				setProfile(document);
 			} catch (error) {
-				console.error("Failed to fetch profile:", error);
-				Alert.alert("Error", "Could not load profile.");
+				const e = error as AppwriteException;
+				Toast.show({
+					type: "error",
+					text1: "Failed to fetch profile",
+					text2: e.message,
+				});
 			} finally {
 				setLoading(false);
 			}
@@ -73,12 +59,12 @@ export default function ProfileScreen() {
 
 		fetchProfile();
 
-		const userDocumentChannel = `databases.${DATABASE_ID}.tabels.${COLLECTION_ID_USERS}.rows.${userId}`;
+		const userDocumentChannel = `databases.${DATABASE_ID}.tabels.${USERS_TABLE}.rows.${userId}`;
 
 		const unsubscribe = appwriteClient.subscribe(
 			userDocumentChannel,
 			(response) => {
-				setProfile(response.payload as IUserProfile);
+				setProfile(response.payload as IUser);
 			},
 		);
 
@@ -86,14 +72,6 @@ export default function ProfileScreen() {
 			unsubscribe();
 		};
 	}, [user]);
-
-	if (loading) {
-		return (
-			<View className="flex-1 justify-center items-center">
-				<ActivityIndicator size="large" />
-			</View>
-		);
-	}
 
 	if (!profile) {
 		return (
@@ -104,7 +82,8 @@ export default function ProfileScreen() {
 	}
 
 	return (
-		<SafeAreaView className="flex-1 bg-gray-100">
+		<SafeAreaView className="safe-area-container">
+			<StatusBar style="dark" />
 			<View className="p-6">
 				<View className="items-center mb-8">
 					<View className="w-24 h-24 bg-blue-500 rounded-full justify-center items-center shadow-lg mb-4">
@@ -116,7 +95,7 @@ export default function ProfileScreen() {
 					<Text className="text-lg text-gray-500">{profile.email}</Text>
 				</View>
 
-				<View className="flex-row justify-between space-x-4 mb-8">
+				<View className="flex flex-row justify-between gap-4 mb-8">
 					<StatCard label="Level" value={profile.level} />
 					<StatCard label="Streak" value={`${profile.currentStreak} days`} />
 				</View>

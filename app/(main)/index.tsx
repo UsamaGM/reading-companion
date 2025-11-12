@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { useAuthStore } from "@/store/authStore";
-import client, { databases } from "@/lib/appwrite";
+import client, { DATABASE_ID, databases, USERBOOK_TABLE } from "@/lib/appwrite";
 import { AppwriteException, Query } from "react-native-appwrite";
 import { router } from "expo-router";
 import BookCard from "@/components/BookCard";
@@ -9,9 +9,7 @@ import { IUserBook } from "@/types";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUiStore } from "@/store/uiStore";
 import Toast from "react-native-toast-message";
-
-const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
-const COLLECTION_ID_USERBOOKS = "userbook";
+import { StatusBar } from "expo-status-bar";
 
 export default function BookshelfScreen() {
 	const user = useAuthStore((s) => s.user);
@@ -25,7 +23,7 @@ export default function BookshelfScreen() {
 			setLoading(true);
 			const response = await databases.listDocuments(
 				DATABASE_ID,
-				COLLECTION_ID_USERBOOKS,
+				USERBOOK_TABLE,
 				[Query.equal("userId", user.$id)],
 			);
 
@@ -47,7 +45,7 @@ export default function BookshelfScreen() {
 	}, [fetchBooks]);
 
 	useEffect(() => {
-		const channel = `databases.${DATABASE_ID}.collections.${COLLECTION_ID_USERBOOKS}.documents`;
+		const channel = `databases.${DATABASE_ID}.collections.${USERBOOK_TABLE}.documents`;
 
 		const unsubscribe = client.subscribe(channel, (response) => {
 			fetchBooks();
@@ -63,7 +61,8 @@ export default function BookshelfScreen() {
 	};
 
 	return (
-		<SafeAreaView className="flex-1 bg-gray-100">
+		<SafeAreaView className="safe-area-container">
+			<StatusBar style="dark" />
 			<View className="p-4">
 				<View className="flex-row justify-between items-center mb-4">
 					<Text className="text-3xl font-bold">My Bookshelf</Text>
