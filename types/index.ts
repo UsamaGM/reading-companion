@@ -6,7 +6,28 @@ export interface IUser extends Models.Document {
   totalXP: number;
   level: number;
   currentStreak: number;
-  lastReadingDay: string;
+  lastReadingDay: string | null;
+  treats: number;
+  hasActivePet: boolean;
+}
+
+export interface IPetType extends Models.Document {
+  name: string;
+  baseImageUrl: string;
+}
+
+export interface IUserPet extends Models.Document {
+  userId: string;
+  petTypeId: string;
+  nickname: string;
+  happiness: number;
+  equippedItems: string[];
+}
+
+export interface IPetItem extends Models.Document {
+  name: string;
+  price: number;
+  imageUrl: string;
 }
 
 export interface IUserBook extends Models.Document {
@@ -28,4 +49,16 @@ export interface IClub extends Models.Document {
   clubName: string;
   inviteCode: string;
   creatorId: string;
+}
+
+export interface IClubMembers extends Models.Document {
+  userId: string;
+  clubId: string;
+  weeklyPages: number;
+}
+
+export interface LeaderboardEntry {
+  userId: string;
+  username: string;
+  weeklyPages: number;
 }

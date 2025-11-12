@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { account } from "../lib/appwrite";
+import { account } from "@/lib/appwrite";
 import { ID, AppwriteException } from "react-native-appwrite";
 import { useUiStore } from "./uiStore";
 import Toast from "react-native-toast-message";
@@ -16,9 +16,6 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
 
-  /**
-   * Check for an existing session on app load.
-   */
   checkCurrentUser: async () => {
     const setLoading = useUiStore.getState().setLoading;
 
@@ -34,10 +31,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  /**
-   * Sign up a new user.
-   * Creates the user and then logs them in.
-   */
   signUp: async (email, password, username) => {
     const setLoading = useUiStore.getState().setLoading;
 
@@ -67,9 +60,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  /**
-   * Log in an existing user.
-   */
   logIn: async (email, password) => {
     const setLoading = useUiStore.getState().setLoading;
 
@@ -91,9 +81,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  /**
-   * Log out the current user.
-   */
   logOut: async () => {
     const setLoading = useUiStore.getState().setLoading;
 
@@ -105,7 +92,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const e = error as AppwriteException;
       Toast.show({
         type: "error",
-        text1: "LogOut Failed",
+        text1: "Log Out Failed",
         text2: e.message || "An unknown error occurred.",
       });
     } finally {

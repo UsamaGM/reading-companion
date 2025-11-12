@@ -29,6 +29,14 @@ export default function MainAppLayout() {
         name="createClub"
         options={{ href: null, title: "Create Club" }}
       />
+      <Tabs.Screen
+        name="clubDetail"
+        options={{ href: null, title: "Club Details" }}
+      />
+      <Tabs.Screen
+        name="petOnboarding"
+        options={{ href: null, title: "Pet Onboarding" }}
+      />
     </Tabs>
   );
 }

@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-	View,
-	Text,
-	ActivityIndicator,
-	TouchableOpacity,
-	Alert,
-} from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useAuthStore } from "@/store/authStore";
 import appwriteClient, {
 	DATABASE_ID,
@@ -19,6 +13,8 @@ import { useUiStore } from "@/store/uiStore";
 import { AppwriteException } from "react-native-appwrite";
 import Toast from "react-native-toast-message";
 import { StatusBar } from "expo-status-bar";
+import PetComponent from "@/components/PetComponent";
+import { router } from "expo-router";
 
 export default function ProfileScreen() {
 	const user = useAuthStore((s) => s.user);
@@ -84,32 +80,48 @@ export default function ProfileScreen() {
 	return (
 		<SafeAreaView className="safe-area-container">
 			<StatusBar style="dark" />
-			<View className="p-6">
-				<View className="items-center mb-8">
-					<View className="w-24 h-24 bg-blue-500 rounded-full justify-center items-center shadow-lg mb-4">
-						<Text className="text-white text-5xl font-bold">
-							{profile.username.charAt(0).toUpperCase()}
-						</Text>
+			<ScrollView>
+				<View className="p-6 flex-1">
+					<View className="items-center mb-8">
+						<View className="w-24 h-24 bg-blue-500 rounded-full justify-center items-center shadow-lg mb-4">
+							<Text className="text-white text-5xl font-bold">
+								{profile.username.charAt(0).toUpperCase()}
+							</Text>
+						</View>
+						<Text className="text-3xl font-bold">{profile.username}</Text>
+						<Text className="text-lg text-gray-500">{profile.email}</Text>
 					</View>
-					<Text className="text-3xl font-bold">{profile.username}</Text>
-					<Text className="text-lg text-gray-500">{profile.email}</Text>
-				</View>
 
-				<View className="flex flex-row justify-between gap-4 mb-8">
-					<StatCard label="Level" value={profile.level} />
-					<StatCard label="Streak" value={`${profile.currentStreak} days`} />
-				</View>
-				<StatCard label="Total XP" value={profile.totalXP} />
+					{profile.hasActivePet ? (
+						<PetComponent />
+					) : (
+						<TouchableOpacity
+							className="auth-btn-container"
+							onPress={() => router.push("/(main)/petOnboarding")}
+						>
+							<Text className="auth-btn-text">Adopt your first pet!</Text>
+						</TouchableOpacity>
+					)}
 
-				<TouchableOpacity
-					onPress={logOut}
-					className="bg-red-500 py-3 px-4 rounded-lg shadow-md mt-12"
-				>
-					<Text className="text-white font-bold text-center text-lg">
-						Log Out
-					</Text>
-				</TouchableOpacity>
-			</View>
+					<View className="flex flex-row justify-between gap-4 my-8">
+						<StatCard label="Level" value={profile.level} />
+						<StatCard label="Streak" value={`${profile.currentStreak} days`} />
+					</View>
+					<View className="flex flex-row justify-between gap-4 mb-8">
+						<StatCard label="Total XP" value={profile.totalXP} />
+						<StatCard label="Treats" value={profile.treats} />
+					</View>
+
+					<TouchableOpacity
+						onPress={logOut}
+						className="bg-red-500 py-3 px-4 rounded-lg shadow-md mt-12"
+					>
+						<Text className="text-white font-bold text-center text-lg">
+							Log Out
+						</Text>
+					</TouchableOpacity>
+				</View>
+			</ScrollView>
 		</SafeAreaView>
 	);
 }

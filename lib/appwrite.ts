@@ -23,5 +23,8 @@ export const USERBOOK_TABLE = "userbook";
 export const READINGSESSION_TABLE = "readingsession";
 export const CLUBS_TABLE = "clubs";
 export const CLUBMEMBER_TABLE = "clubmembers";
+export const PETTYPE_TABLE = "pettypes";
+export const USERPET_TABLE = "userpets";
+export const PETITEM_TABLE = "petitems";
 
 export default client;

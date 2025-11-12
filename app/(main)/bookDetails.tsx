@@ -55,7 +55,7 @@ export default function BookDetailScreen() {
   if (!book) return null;
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView className="safe-area-container">
       <StatusBar style="dark" />
       <View className="p-4">
         <Text className="text-3xl font-bold">{book.title}</Text>

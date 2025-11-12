@@ -4,7 +4,7 @@
 
 @layer utilities {
 	.safe-area-container {
-		@apply flex-1 bg-white;
+		@apply flex-1 bg-gray-100 -mt-10;
 	}
 	.auth-container {
 		@apply flex-1 justify-center p-8;

@@ -9,11 +9,18 @@ import {
 } from "react-native";
 import { useAuthStore } from "@/store/authStore";
 import { useUiStore } from "@/store/uiStore";
-import { CLUBS_TABLE, DATABASE_ID, databases } from "@/lib/appwrite";
+import {
+  CLUBMEMBER_TABLE,
+  CLUBS_TABLE,
+  DATABASE_ID,
+  databases,
+} from "@/lib/appwrite";
 import { router } from "expo-router";
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { IClub, IClubMembers, IUser } from "@/types";
+import { ID, Query } from "react-native-appwrite";
 
 export default function JoinClubScreen() {
   const user = useAuthStore((s) => s.user);
@@ -26,29 +33,41 @@ export default function JoinClubScreen() {
       return;
     }
 
-    setLoading(true);
     try {
-      const club = await databases.getDocument(
-        DATABASE_ID,
-        CLUBS_TABLE,
-        inviteCode.trim(),
-      );
+      setLoading(true);
 
-      const members = club.members as string[];
-      if (members.includes(user.$id)) {
+      const [clubs, memberEntries] = await Promise.all([
+        databases.listDocuments(DATABASE_ID, CLUBS_TABLE, [
+          Query.equal("inviteCode", inviteCode.trim()),
+        ]),
+        databases.listDocuments(DATABASE_ID, CLUBMEMBER_TABLE, [
+          Query.equal("userId", user.$id),
+        ]),
+      ]);
+
+      const club = clubs.documents[0] as unknown as IClub;
+      const clubsWhereMember =
+        memberEntries.documents as unknown as IClubMembers[];
+
+      if (clubsWhereMember.some((c) => c.clubId == club.$id)) {
         Toast.show({
           type: "info",
           text1: "Already a Member",
-          text2: `You are already in ${club.clubName}.`,
+          text2: `You are already a member of ${club.clubName}.`,
         });
         router.back();
         return;
       }
 
-      const newMembers = [...members, user.$id];
-      await databases.updateDocument(DATABASE_ID, CLUBS_TABLE, club.$id, {
-        members: newMembers,
-      });
+      await databases.createDocument(
+        DATABASE_ID,
+        CLUBMEMBER_TABLE,
+        ID.unique(),
+        {
+          userId: user.$id,
+          clubId: club.$id,
+        },
+      );
 
       Toast.show({
         type: "success",
