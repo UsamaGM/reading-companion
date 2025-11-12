@@ -1,5 +1,8 @@
-import { ActivityIndicator } from "react-native";
+import { Redirect } from "expo-router";
+import { useAuthStore } from "@/store/authStore";
 
 export default function Index() {
-	return <ActivityIndicator size="large" />;
+  const user = useAuthStore((s) => s.user);
+
+  return <Redirect href={user ? "/(main)" : "/(auth)/login"} />;
 }

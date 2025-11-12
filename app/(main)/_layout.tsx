@@ -4,7 +4,7 @@ export default function MainAppLayout() {
   return (
     <Tabs>
       <Tabs.Screen
-        name="bookshelf"
+        name="index"
         options={{
           title: "Bookshelf",
         }}

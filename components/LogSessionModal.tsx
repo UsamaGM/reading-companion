@@ -5,8 +5,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
-  ActivityIndicator,
   TouchableWithoutFeedback,
   Keyboard,
   KeyboardAvoidingView,
@@ -14,8 +12,10 @@ import {
 } from "react-native";
 import { databases } from "@/lib/appwrite";
 import { useAuthStore } from "@/store/authStore";
-import { ID, Permission, Role } from "react-native-appwrite";
+import { AppwriteException, ID, Permission, Role } from "react-native-appwrite";
 import type { IUserBook } from "@/types";
+import { useUiStore } from "@/store/uiStore";
+import Toast from "react-native-toast-message";
 
 const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
 const COLLECTION_ID_READINGSESSIONS = "readingsession";
@@ -27,14 +27,19 @@ interface Props {
 }
 
 export default function LogSessionModal({ visible, book, onClose }: Props) {
-  const { user } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const setLoading = useUiStore((s) => s.setLoading);
+
   const [pagesRead, setPagesRead] = useState("");
   const [timeSpent, setTimeSpent] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!pagesRead || !timeSpent || !user) {
-      Alert.alert("Error", "Please fill in all fields.");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please fill in all fields",
+      });
       return;
     }
 
@@ -43,13 +48,16 @@ export default function LogSessionModal({ visible, book, onClose }: Props) {
     const userId = user.$id;
 
     if (isNaN(pagesReadNum) || isNaN(timeSpentNum) || pagesReadNum <= 0) {
-      Alert.alert("Error", "Please enter valid numbers.");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please enter valid numbers",
+      });
       return;
     }
 
-    setLoading(true);
-
     try {
+      setLoading(true);
       await databases.createDocument(
         DATABASE_ID,
         COLLECTION_ID_READINGSESSIONS,
@@ -66,14 +74,18 @@ export default function LogSessionModal({ visible, book, onClose }: Props) {
         ],
       );
 
-      setLoading(false);
       setPagesRead("");
       setTimeSpent("");
       onClose(true);
     } catch (error: any) {
+      const e = error as AppwriteException;
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: `${e.message} Failed to Log Session`,
+      });
+    } finally {
       setLoading(false);
-      console.error("Failed to log session:", error);
-      Alert.alert("Error", error.message || "Could not log session.");
     }
   };
 
@@ -116,18 +128,11 @@ export default function LogSessionModal({ visible, book, onClose }: Props) {
 
                 <TouchableOpacity
                   onPress={handleSubmit}
-                  disabled={loading}
-                  className={`py-3 rounded-lg shadow-md ${
-                    loading ? "bg-gray-400" : "bg-blue-500"
-                  }`}
+                  className="py-3 rounded-lg shadow-md bg-blue-500"
                 >
-                  {loading ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text className="text-white font-bold text-center text-lg">
-                      Save Session
-                    </Text>
-                  )}
+                  <Text className="text-white font-bold text-center text-lg">
+                    Save Session
+                  </Text>
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>

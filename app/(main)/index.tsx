@@ -1,64 +1,66 @@
-import React, { useState, useEffect } from "react";
-import {
-	View,
-	Text,
-	FlatList,
-	TouchableOpacity,
-	ActivityIndicator,
-} from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { useAuthStore } from "@/store/authStore";
-import { databases } from "@/lib/appwrite";
-import { Query } from "react-native-appwrite";
+import client, { databases } from "@/lib/appwrite";
+import { AppwriteException, Query } from "react-native-appwrite";
 import { router } from "expo-router";
 import BookCard from "@/components/BookCard";
 import { IUserBook } from "@/types";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUiStore } from "@/store/uiStore";
+import Toast from "react-native-toast-message";
 
 const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
 const COLLECTION_ID_USERBOOKS = "userbook";
 
 export default function BookshelfScreen() {
-	const { user } = useAuthStore();
+	const user = useAuthStore((s) => s.user);
+	const setLoading = useUiStore((s) => s.setLoading);
 	const [books, setBooks] = useState<IUserBook[]>([]);
-	const [loading, setLoading] = useState(true);
+
+	const fetchBooks = useCallback(async () => {
+		if (!user) return;
+
+		try {
+			setLoading(true);
+			const response = await databases.listDocuments(
+				DATABASE_ID,
+				COLLECTION_ID_USERBOOKS,
+				[Query.equal("userId", user.$id)],
+			);
+
+			setBooks(response.documents as unknown as IUserBook[]);
+		} catch (error) {
+			const e = error as AppwriteException;
+			Toast.show({
+				type: "error",
+				text1: "Failed to Add Book",
+				text2: e.message || "An unknown error occurred.",
+			});
+		} finally {
+			setLoading(false);
+		}
+	}, [user]);
 
 	useEffect(() => {
-		if (!user) {
-			setLoading(false);
-			return;
-		}
-
-		const fetchBooks = async () => {
-			try {
-				setLoading(true);
-				const response = await databases.listDocuments(
-					DATABASE_ID,
-					COLLECTION_ID_USERBOOKS,
-					[Query.equal("userId", user.$id)],
-				);
-
-				setBooks(response.documents as unknown as IUserBook[]);
-			} catch (error) {
-				console.error("Failed to fetch books:", error);
-			} finally {
-				setLoading(false);
-			}
-		};
-
 		fetchBooks();
-	}, [user]);
+	}, [fetchBooks]);
+
+	useEffect(() => {
+		const channel = `databases.${DATABASE_ID}.collections.${COLLECTION_ID_USERBOOKS}.documents`;
+
+		const unsubscribe = client.subscribe(channel, (response) => {
+			fetchBooks();
+		});
+
+		return () => {
+			unsubscribe();
+		};
+	}, [fetchBooks]);
 
 	const handleAddNewBook = () => {
 		router.push("/(main)/addBook");
 	};
-
-	if (loading) {
-		return (
-			<View className="flex-1 justify-center items-center">
-				<ActivityIndicator size="large" />
-			</View>
-		);
-	}
 
 	return (
 		<SafeAreaView className="flex-1 bg-gray-100">

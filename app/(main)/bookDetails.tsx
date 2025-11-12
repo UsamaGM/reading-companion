@@ -1,26 +1,23 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { databases } from "@/lib/appwrite";
 import type { IUserBook } from "@/types";
-import LogSessionModal from "@/components/logScreenModal";
+import LogSessionModal from "@/components/LogSessionModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ProgressBar from "@/components/ProgressBar";
+import { useUiStore } from "@/store/uiStore";
+import { AppwriteException } from "react-native-appwrite";
+import Toast from "react-native-toast-message";
 
 const DATABASE_ID = process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID!;
 const COLLECTION_ID_USERBOOKS = "userbook";
 
 export default function BookDetailScreen() {
   const { bookId } = useLocalSearchParams<{ bookId: string }>();
-  console.log(bookId);
+  const setLoading = useUiStore((s) => s.setLoading);
+
   const [book, setBook] = useState<IUserBook | null>(null);
-  const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
 
   const fetchBook = useCallback(async () => {
@@ -35,8 +32,12 @@ export default function BookDetailScreen() {
 
       setBook(document);
     } catch (error) {
-      console.error("Failed to fetch book details:", error);
-      Alert.alert("Error", "Could not load book details.");
+      const e = error as AppwriteException;
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: `${e.message} Failed to fetch book details`,
+      });
     } finally {
       setLoading(false);
     }
@@ -53,13 +54,7 @@ export default function BookDetailScreen() {
     }
   };
 
-  if (loading || !book) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
+  if (!book) return null;
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
