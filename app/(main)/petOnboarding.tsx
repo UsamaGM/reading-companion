@@ -15,6 +15,7 @@ import Toast from "react-native-toast-message";
 import { IPetType } from "@/types";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import AuthButton from "@/components/AuthButton";
 
 export default function PetOnboardingScreen() {
   const user = useAuthStore((s) => s.user);
@@ -139,14 +140,7 @@ export default function PetOnboardingScreen() {
           className="bg-white p-3 rounded-lg border border-gray-300 mb-6 text-base"
         />
 
-        <TouchableOpacity
-          onPress={handleAdopt}
-          className="bg-green-500 py-3 rounded-lg shadow-md"
-        >
-          <Text className="text-white font-bold text-center text-lg">
-            Adopt Pet
-          </Text>
-        </TouchableOpacity>
+        <AuthButton title="Adopt Pet" onPress={handleAdopt} />
       </View>
     </SafeAreaView>
   );

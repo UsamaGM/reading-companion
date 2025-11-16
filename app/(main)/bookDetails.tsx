@@ -10,6 +10,7 @@ import { useUiStore } from "@/store/uiStore";
 import { AppwriteException } from "react-native-appwrite";
 import Toast from "react-native-toast-message";
 import { StatusBar } from "expo-status-bar";
+import AuthButton from "@/components/AuthButton";
 
 export default function BookDetailScreen() {
   const { bookId } = useLocalSearchParams<{ bookId: string }>();
@@ -65,14 +66,10 @@ export default function BookDetailScreen() {
 
         <ProgressBar current={book.currentPage} total={book.totalPages} />
 
-        <TouchableOpacity
+        <AuthButton
+          title="Log Reading Session"
           onPress={() => setModalVisible(true)}
-          className="bg-blue-500 py-3 px-4 rounded-lg shadow-md"
-        >
-          <Text className="text-white font-bold text-center text-lg">
-            Log Reading Session
-          </Text>
-        </TouchableOpacity>
+        />
       </View>
 
       <LogSessionModal

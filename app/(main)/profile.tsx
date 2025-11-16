@@ -15,6 +15,7 @@ import Toast from "react-native-toast-message";
 import { StatusBar } from "expo-status-bar";
 import PetComponent from "@/components/PetComponent";
 import { router } from "expo-router";
+import AuthButton from "@/components/AuthButton";
 
 export default function ProfileScreen() {
 	const user = useAuthStore((s) => s.user);
@@ -95,12 +96,10 @@ export default function ProfileScreen() {
 					{profile.hasActivePet ? (
 						<PetComponent />
 					) : (
-						<TouchableOpacity
-							className="auth-btn-container"
+						<AuthButton
+							title="Adopt your first pet"
 							onPress={() => router.push("/(main)/petOnboarding")}
-						>
-							<Text className="auth-btn-text">Adopt your first pet!</Text>
-						</TouchableOpacity>
+						/>
 					)}
 
 					<View className="flex flex-row justify-between gap-4 my-8">
@@ -112,13 +111,8 @@ export default function ProfileScreen() {
 						<StatCard label="Treats" value={profile.treats} />
 					</View>
 
-					<TouchableOpacity
-						onPress={logOut}
-						className="bg-red-500 py-3 px-4 rounded-lg shadow-md mt-12"
-					>
-						<Text className="text-white font-bold text-center text-lg">
-							Log Out
-						</Text>
+					<TouchableOpacity onPress={logOut} className="log-out-btn-container">
+						<Text className="log-out-btn-text">Log Out</Text>
 					</TouchableOpacity>
 				</View>
 			</ScrollView>

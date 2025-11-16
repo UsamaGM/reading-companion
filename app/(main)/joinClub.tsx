@@ -21,6 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { IClub, IClubMembers, IUser } from "@/types";
 import { ID, Query } from "react-native-appwrite";
+import AuthButton from "@/components/AuthButton";
 
 export default function JoinClubScreen() {
   const user = useAuthStore((s) => s.user);
@@ -107,14 +108,7 @@ export default function JoinClubScreen() {
             className="bg-white p-3 rounded-lg border border-gray-300 mb-6 text-base"
           />
 
-          <TouchableOpacity
-            onPress={handleSubmit}
-            className="bg-green-500 py-3 rounded-lg shadow-md"
-          >
-            <Text className="text-white font-bold text-center text-lg">
-              Join Club
-            </Text>
-          </TouchableOpacity>
+          <AuthButton title="Join Club" onPress={handleSubmit} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

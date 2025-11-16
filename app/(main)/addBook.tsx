@@ -15,6 +15,7 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUiStore } from "@/store/uiStore";
 import Toast from "react-native-toast-message";
+import AuthButton from "@/components/AuthButton";
 
 export default function AddBookScreen() {
   const user = useAuthStore((s) => s.user);
@@ -98,31 +99,24 @@ export default function AddBookScreen() {
         <View className="p-4">
           <Text className="text-3xl font-bold mb-6">Add New Book</Text>
 
-          <Text className="book-input-label">Book Title</Text>
+          <Text className="input-label">Book Title</Text>
           <TextInput
             value={title}
             onChangeText={setTitle}
             placeholder="e.g., Dune"
-            className="book-input"
+            className="input"
           />
 
-          <Text className="book-input-label">Total Pages</Text>
+          <Text className="input-label">Total Pages</Text>
           <TextInput
             value={totalPages}
             onChangeText={setTotalPages}
             placeholder="e.g., 412"
             keyboardType="numeric"
-            className="book-input"
+            className="input"
           />
 
-          <TouchableOpacity
-            onPress={handleSubmit}
-            className="py-3 px-4 rounded-lg shadow-md bg-blue-500"
-          >
-            <Text className="text-white font-bold text-center text-lg">
-              Add Book
-            </Text>
-          </TouchableOpacity>
+          <AuthButton title="Add Book" onPress={handleSubmit} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

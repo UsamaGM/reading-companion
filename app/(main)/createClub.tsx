@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -15,6 +14,7 @@ import { router } from "expo-router";
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import AuthButton from "@/components/AuthButton";
 
 function generateInviteCode(length: number) {
   const chars = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
@@ -94,17 +94,10 @@ export default function CreateClubScreen() {
             value={clubName}
             onChangeText={setClubName}
             placeholder="e.g., The Fantasy Readers"
-            className="bg-white p-3 rounded-lg border border-gray-300 mb-6 text-base"
+            className="input"
           />
 
-          <TouchableOpacity
-            onPress={handleSubmit}
-            className="bg-blue-500 py-3 rounded-lg shadow-md"
-          >
-            <Text className="text-white font-bold text-center text-lg">
-              Create Club
-            </Text>
-          </TouchableOpacity>
+          <AuthButton title="Create Club" onPress={handleSubmit} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

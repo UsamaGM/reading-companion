@@ -13,7 +13,7 @@
 		@apply text-3xl font-bold mb-12 text-center;
 	}
 	.auth-input {
-		@apply border border-gray-300 rounded-lg mb-4 px-3 text-lg;
+		@apply border border-gray-300 rounded-lg mb-4 px-3 text-lg text-gray-800;
 	}
 	.auth-btn-container {
 		@apply bg-blue-500 rounded-lg py-2;
@@ -22,10 +22,17 @@
 		@apply text-lg text-center text-white font-bold;
 	}
 
-	.book-input-label {
+	.input-label {
 		@apply text-lg font-semibold mb-2;
 	}
-	.book-input {
-		@apply bg-white p-3 rounded-lg border border-gray-300 mb-4 text-base;
+	.input {
+		@apply bg-white p-3 rounded-lg border border-gray-300 mb-4 text-base text-gray-800 placeholder:text-gray-500;
+	}
+
+	.log-out-btn-container {
+		@apply bg-red-500 py-3 px-4 rounded-lg shadow-md mt-12;
+	}
+	.log-out-btn-text {
+		@apply text-white font-bold text-center text-lg;
 	}
 }

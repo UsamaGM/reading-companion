@@ -4,7 +4,7 @@ export default function AuthButton({
   onPress,
   title,
 }: {
-  onPress: () => {};
+  onPress: () => void;
   title: string;
 }) {
   return (
