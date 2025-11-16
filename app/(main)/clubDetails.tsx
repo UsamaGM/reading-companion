@@ -1,28 +1,21 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, FlatList, ActivityIndicator, Alert } from "react-native";
+import React, { useState, useCallback } from "react";
+import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useFocusEffect } from "expo-router";
-import { databases } from "@/lib/appwrite";
-import { Query, Models, AppwriteException } from "react-native-appwrite";
+import { tablesDB } from "@/lib/appwrite";
+import { Query, AppwriteException } from "react-native-appwrite";
 import {
   CLUBMEMBER_TABLE,
   CLUBS_TABLE,
   DATABASE_ID,
   USERS_TABLE,
 } from "@/lib/appwrite";
-import { IUser, LeaderboardEntry } from "@/types";
+import { IClubMembers, IUser, LeaderboardEntry } from "@/types";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LeaderboardCard from "@/components/LeaderboardCard";
 import Toast from "react-native-toast-message";
-import { useUiStore } from "@/store/uiStore";
-
-interface IClubMember extends Models.Document {
-  userId: string;
-  clubId: string;
-  weeklyPages: number;
-}
 
 export default function ClubDetailScreen() {
-  const setLoading = useUiStore((s) => s.setLoading);
+  const [loading, setLoading] = useState(true);
   const { clubId } = useLocalSearchParams<{ clubId: string }>();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [clubName, setClubName] = useState("");
@@ -31,19 +24,17 @@ export default function ClubDetailScreen() {
     if (!clubId) return;
 
     try {
-      setLoading(true);
+      const clubPromise = tablesDB.getRow({
+        databaseId: DATABASE_ID,
+        tableId: CLUBS_TABLE,
+        rowId: clubId,
+      });
 
-      const clubPromise = databases.getDocument(
-        DATABASE_ID,
-        CLUBS_TABLE,
-        clubId,
-      );
-
-      const membersPromise = databases.listDocuments(
-        DATABASE_ID,
-        CLUBMEMBER_TABLE,
-        [Query.equal("clubId", clubId)],
-      );
+      const membersPromise = tablesDB.listRows({
+        databaseId: DATABASE_ID,
+        tableId: CLUBMEMBER_TABLE,
+        queries: [Query.equal("clubId", clubId)],
+      });
 
       const [clubDoc, membersRes] = await Promise.all([
         clubPromise,
@@ -51,7 +42,7 @@ export default function ClubDetailScreen() {
       ]);
 
       setClubName(clubDoc.clubName);
-      const members = membersRes.documents as unknown as IClubMember[];
+      const members = membersRes.rows as unknown as IClubMembers[];
 
       if (members.length === 0) {
         setLeaderboard([]);
@@ -61,10 +52,12 @@ export default function ClubDetailScreen() {
 
       const userIds = members.map((m) => m.userId);
 
-      const usersRes = await databases.listDocuments(DATABASE_ID, USERS_TABLE, [
-        Query.equal("$id", userIds),
-      ]);
-      const users = usersRes.documents as unknown as IUser[];
+      const usersRes = await tablesDB.listRows({
+        databaseId: DATABASE_ID,
+        tableId: USERS_TABLE,
+        queries: [Query.equal("$id", userIds)],
+      });
+      const users = usersRes.rows as unknown as IUser[];
 
       const userMap = new Map<string, string>();
       users.forEach((u) => userMap.set(u.$id, u.username));
@@ -96,6 +89,8 @@ export default function ClubDetailScreen() {
     }, [fetchLeaderboard]),
   );
 
+  if (loading) return <ActivityIndicator size="large" />;
+
   return (
     <SafeAreaView className="safe-area-container">
       <FlatList
@@ -105,7 +100,7 @@ export default function ClubDetailScreen() {
           <LeaderboardCard item={item} rank={index + 1} />
         )}
         ListHeaderComponent={
-          <View className="p-4">
+          <View className="mb-8">
             <Text className="text-3xl font-bold mb-1">{clubName}</Text>
             <Text className="text-xl font-semibold text-gray-700">
               Weekly Leaderboard

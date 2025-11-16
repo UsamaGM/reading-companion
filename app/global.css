@@ -4,10 +4,10 @@
 
 @layer utilities {
 	.safe-area-container {
-		@apply flex-1 bg-gray-100 -mt-10;
+		@apply bg-gray-100 -mt-12 p-4 flex-1;
 	}
 	.auth-container {
-		@apply flex-1 justify-center p-8;
+		@apply;
 	}
 	.auth-title {
 		@apply text-3xl font-bold mb-12 text-center;
@@ -20,6 +20,13 @@
 	}
 	.auth-btn-text {
 		@apply text-lg text-center text-white font-bold;
+	}
+
+	.btn-container {
+		@apply bg-blue-500 rounded-lg px-4 py-2 disabled:bg-gray-700 flex-1 min-h-12 max-h-12;
+	}
+	.btn-text {
+		@apply text-lg text-center text-white font-bold disabled:text-gray-200 flex-1;
 	}
 
 	.input-label {

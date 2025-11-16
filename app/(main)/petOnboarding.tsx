@@ -1,25 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from "react-native";
 import { useAuthStore } from "@/store/authStore";
-import { useUiStore } from "@/store/uiStore";
 import {
   DATABASE_ID,
-  databases,
   PETTYPE_TABLE,
+  tablesDB,
   USERPET_TABLE,
   USERS_TABLE,
 } from "@/lib/appwrite";
-import { AppwriteException, ID, Permission, Role } from "react-native-appwrite";
+import { AppwriteException, ID } from "react-native-appwrite";
 import { router } from "expo-router";
 import Toast from "react-native-toast-message";
 import { IPetType } from "@/types";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import AuthButton from "@/components/AuthButton";
+import StyledButton from "@/components/StyledButton";
 
 export default function PetOnboardingScreen() {
   const user = useAuthStore((s) => s.user);
-  const setLoading = useUiStore((s) => s.setLoading);
+  const [loading, setLoading] = useState(true);
+  const [petAdopting, setPetAdopting] = useState(false);
   const [petTypes, setPetTypes] = useState<IPetType[]>([]);
 
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
@@ -29,11 +35,13 @@ export default function PetOnboardingScreen() {
     const fetchPetTypes = async () => {
       try {
         setLoading(true);
-        const response = await databases.listDocuments(
-          DATABASE_ID,
-          PETTYPE_TABLE,
-        );
-        setPetTypes(response.documents as unknown as IPetType[]);
+
+        const response = await tablesDB.listRows({
+          databaseId: DATABASE_ID,
+          tableId: PETTYPE_TABLE,
+        });
+
+        setPetTypes(response.rows as unknown as IPetType[]);
       } catch (error) {
         const e = error as AppwriteException;
         Toast.show({
@@ -57,33 +65,31 @@ export default function PetOnboardingScreen() {
       return;
     }
 
-    setLoading(true);
     try {
-      const petPromise = databases.createDocument(
-        DATABASE_ID,
-        USERPET_TABLE,
-        ID.unique(),
-        {
-          userId: user.$id,
-          petTypeId: selectedPetId,
-          nickname: nickname,
-          happiness: 80,
-          equippedItems: [],
-        },
-        [
-          Permission.read(Role.user(user.$id)),
-          Permission.update(Role.user(user.$id)),
-        ],
-      );
+      setPetAdopting(true);
 
-      const userPromise = databases.updateDocument(
-        DATABASE_ID,
-        USERS_TABLE,
-        user.$id,
-        {
+      const newPetData = {
+        userId: user.$id,
+        petTypeId: selectedPetId,
+        nickname: nickname,
+        happiness: 80,
+        equippedItems: [],
+      };
+      const petPromise = tablesDB.createRow({
+        databaseId: DATABASE_ID,
+        tableId: USERPET_TABLE,
+        rowId: ID.unique(),
+        data: newPetData,
+      });
+
+      const userPromise = tablesDB.updateRow({
+        databaseId: DATABASE_ID,
+        tableId: USERS_TABLE,
+        rowId: user.$id,
+        data: {
           hasActivePet: true,
         },
-      );
+      });
 
       await Promise.all([petPromise, userPromise]);
 
@@ -100,48 +106,50 @@ export default function PetOnboardingScreen() {
         text2: error.message,
       });
     } finally {
-      setLoading(false);
+      setPetAdopting(false);
     }
   };
 
+  if (loading) return <ActivityIndicator size="large" />;
+
   return (
     <SafeAreaView className="safe-area-container">
-      <StatusBar style="dark" />
-      <View className="p-4">
-        <Text className="text-3xl font-bold mb-4">Choose Your Pet!</Text>
+      <Text className="text-3xl font-bold mb-4">Choose Your Pet!</Text>
 
-        <View className="flex-row justify-around mb-6">
-          {petTypes.map((pet) => (
-            <TouchableOpacity
-              key={pet.$id}
-              onPress={() => setSelectedPetId(pet.$id)}
-              className={`p-4 bg-white rounded-lg shadow ${
-                selectedPetId === pet.$id ? "border-2 border-blue-500" : ""
-              }`}
-            >
-              <Image
-                source={{ uri: pet.baseImageUrl }}
-                className="w-32 h-32 rounded"
-              />
-              <Text className="text-lg font-bold text-center mt-2">
-                {pet.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text className="text-lg font-semibold mb-2">
-          Give your pet a name:
-        </Text>
-        <TextInput
-          value={nickname}
-          onChangeText={setNickname}
-          placeholder="e.g., Fluffy"
-          className="bg-white p-3 rounded-lg border border-gray-300 mb-6 text-base"
-        />
-
-        <AuthButton title="Adopt Pet" onPress={handleAdopt} />
+      <View className="flex-row justify-around mb-6">
+        {petTypes.map((pet) => (
+          <TouchableOpacity
+            key={pet.$id}
+            onPress={() => setSelectedPetId(pet.$id)}
+            className={`p-4 bg-white rounded-lg shadow ${
+              selectedPetId === pet.$id ? "border-2 border-blue-500" : ""
+            }`}
+          >
+            <Image
+              source={{ uri: pet.baseImageUrl }}
+              className="w-32 h-32 rounded"
+            />
+            <Text className="text-lg font-bold text-center mt-2">
+              {pet.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
+
+      <Text className="text-lg font-semibold mb-2">Give your pet a name:</Text>
+      <TextInput
+        value={nickname}
+        onChangeText={setNickname}
+        placeholder="e.g., Fluffy"
+        className="bg-white p-3 rounded-lg border border-gray-300 mb-6 text-base"
+      />
+
+      <StyledButton
+        title="Adopt Pet"
+        onPress={handleAdopt}
+        loading={petAdopting}
+        disabled={petAdopting}
+      />
     </SafeAreaView>
   );
 }

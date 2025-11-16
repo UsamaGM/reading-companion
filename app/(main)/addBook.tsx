@@ -1,26 +1,16 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { Text, TextInput, KeyboardAvoidingView, Platform } from "react-native";
 import { useAuthStore } from "@/store/authStore";
-import { DATABASE_ID, databases, USERBOOK_TABLE } from "@/lib/appwrite";
-import { AppwriteException, ID, Permission, Role } from "react-native-appwrite";
+import { DATABASE_ID, tablesDB, USERBOOK_TABLE } from "@/lib/appwrite";
+import { AppwriteException, ID } from "react-native-appwrite";
 import { router } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUiStore } from "@/store/uiStore";
 import Toast from "react-native-toast-message";
-import AuthButton from "@/components/AuthButton";
+import StyledButton from "@/components/StyledButton";
 
 export default function AddBookScreen() {
   const user = useAuthStore((s) => s.user);
-  const setLoading = useUiStore((s) => s.setLoading);
-
+  const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [totalPages, setTotalPages] = useState("");
 
@@ -56,19 +46,12 @@ export default function AddBookScreen() {
         status: "reading",
       };
 
-      const permissions = [
-        Permission.read(Role.user(userId)),
-        Permission.update(Role.user(userId)),
-        Permission.delete(Role.user(userId)),
-      ];
-
-      await databases.createDocument(
-        DATABASE_ID,
-        USERBOOK_TABLE,
-        ID.unique(),
-        newBookData,
-        permissions,
-      );
+      await tablesDB.createRow({
+        databaseId: DATABASE_ID,
+        tableId: USERBOOK_TABLE,
+        rowId: ID.unique(),
+        data: newBookData,
+      });
 
       Toast.show({
         type: "success",
@@ -95,29 +78,29 @@ export default function AddBookScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        <StatusBar style="dark" />
-        <View className="p-4">
-          <Text className="text-3xl font-bold mb-6">Add New Book</Text>
+        <Text className="input-label">Book Title</Text>
+        <TextInput
+          value={title}
+          onChangeText={setTitle}
+          placeholder="e.g., Dune"
+          className="input"
+        />
 
-          <Text className="input-label">Book Title</Text>
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            placeholder="e.g., Dune"
-            className="input"
-          />
+        <Text className="input-label">Total Pages</Text>
+        <TextInput
+          value={totalPages}
+          onChangeText={setTotalPages}
+          placeholder="e.g., 412"
+          keyboardType="numeric"
+          className="input"
+        />
 
-          <Text className="input-label">Total Pages</Text>
-          <TextInput
-            value={totalPages}
-            onChangeText={setTotalPages}
-            placeholder="e.g., 412"
-            keyboardType="numeric"
-            className="input"
-          />
-
-          <AuthButton title="Add Book" onPress={handleSubmit} />
-        </View>
+        <StyledButton
+          title="Add Book"
+          onPress={handleSubmit}
+          loading={loading}
+          disabled={loading}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

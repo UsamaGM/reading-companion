@@ -1,20 +1,12 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { Text, TextInput, KeyboardAvoidingView, Platform } from "react-native";
 import { useAuthStore } from "@/store/authStore";
-import { useUiStore } from "@/store/uiStore";
-import { CLUBS_TABLE, DATABASE_ID, databases } from "@/lib/appwrite";
-import { ID, Permission, Role } from "react-native-appwrite";
+import { CLUBS_TABLE, DATABASE_ID, tablesDB } from "@/lib/appwrite";
+import { ID } from "react-native-appwrite";
 import { router } from "expo-router";
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import AuthButton from "@/components/AuthButton";
+import StyledButton from "@/components/StyledButton";
 
 function generateInviteCode(length: number) {
   const chars = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
@@ -26,8 +18,8 @@ function generateInviteCode(length: number) {
 }
 
 export default function CreateClubScreen() {
-  const { user } = useAuthStore();
-  const { setLoading } = useUiStore();
+  const user = useAuthStore((s) => s.user);
+  const [loading, setLoading] = useState(false);
   const [clubName, setClubName] = useState("");
 
   const handleSubmit = async () => {
@@ -36,8 +28,8 @@ export default function CreateClubScreen() {
       return;
     }
 
-    setLoading(true);
     try {
+      setLoading(true);
       const inviteCode = generateInviteCode(6);
 
       const newClubData = {
@@ -47,19 +39,12 @@ export default function CreateClubScreen() {
         weeklyLeaderboard: JSON.stringify({}),
       };
 
-      const permissions = [
-        Permission.read(Role.users()),
-        Permission.update(Role.user(user.$id)),
-        Permission.delete(Role.user(user.$id)),
-      ];
-
-      await databases.createDocument(
-        DATABASE_ID,
-        CLUBS_TABLE,
-        ID.unique(),
-        newClubData,
-        permissions,
-      );
+      await tablesDB.createRow({
+        databaseId: DATABASE_ID,
+        tableId: CLUBS_TABLE,
+        rowId: ID.unique(),
+        data: newClubData,
+      });
 
       Toast.show({
         type: "success",
@@ -81,24 +66,26 @@ export default function CreateClubScreen() {
 
   return (
     <SafeAreaView className="safe-area-container">
-      <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
+        className="flex-1 p-4"
       >
-        <View className="p-4">
-          <Text className="text-3xl font-bold mb-6">Start a New Club</Text>
+        <Text className="text-3xl font-bold mb-6">Start a New Club</Text>
 
-          <Text className="text-lg font-semibold mb-2">Club Name</Text>
-          <TextInput
-            value={clubName}
-            onChangeText={setClubName}
-            placeholder="e.g., The Fantasy Readers"
-            className="input"
-          />
+        <Text className="text-lg font-semibold mb-2">Club Name</Text>
+        <TextInput
+          value={clubName}
+          onChangeText={setClubName}
+          placeholder="e.g., The Fantasy Readers"
+          className="input"
+        />
 
-          <AuthButton title="Create Club" onPress={handleSubmit} />
-        </View>
+        <StyledButton
+          title="Create Club"
+          onPress={handleSubmit}
+          loading={loading}
+          disabled={loading}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

@@ -1,8 +1,9 @@
 import { functions } from "@/lib/appwrite";
-import { useUiStore } from "@/store/uiStore";
 import { IPetItem } from "@/types";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { Image, Text, View } from "react-native";
 import Toast from "react-native-toast-message";
+import StyledButton from "./StyledButton";
 
 export default function PetItemCard({
   item,
@@ -11,12 +12,13 @@ export default function PetItemCard({
   item: IPetItem;
   userTreats: number;
 }) {
-  const { setLoading } = useUiStore();
+  const [loading, setLoading] = useState(false);
+
   const canAfford = userTreats >= item.price;
 
   const handleBuy = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       const response = await functions.createExecution({
         functionId: "purchasePetItem",
         body: JSON.stringify({ itemId: item.$id }),
@@ -51,7 +53,7 @@ export default function PetItemCard({
       <Image
         source={{ uri: item.imageUrl }}
         className="w-full h-32"
-        resizeMode="cover"
+        resizeMode="contain"
       />
       <View className="p-3">
         <Text className="text-base font-semibold">{item.name}</Text>
@@ -59,17 +61,13 @@ export default function PetItemCard({
           {item.price} Treats
         </Text>
 
-        <TouchableOpacity
+        <StyledButton
+          title="Buy"
+          secondaryTitle="Not Enough Treats"
           onPress={handleBuy}
           disabled={!canAfford}
-          className={`py-2 px-3 rounded-md mt-2 ${
-            canAfford ? "bg-blue-500" : "bg-gray-300"
-          }`}
-        >
-          <Text className="text-white font-bold text-center">
-            {canAfford ? "Buy" : "Not Enough"}
-          </Text>
-        </TouchableOpacity>
+          loading={loading}
+        />
       </View>
     </View>
   );

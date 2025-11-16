@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { View, TextInput, Text } from "react-native";
+import {
+  View,
+  TextInput,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/authStore";
 import { useUiStore } from "@/store/uiStore";
@@ -38,30 +44,37 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView className="safe-area-container">
-      <View className="auth-container">
-        <Text className="auth-title">Welcome Back!</Text>
-        <TextInput
-          className="auth-input"
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        <TextInput
-          className="auth-input"
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <AuthButton onPress={handleLogin} title="Login" />
+      <KeyboardAvoidingView
+        className="flex-1 justify-center"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View className="auth-container">
+          <Text className="auth-title">Welcome Back!</Text>
+          <TextInput
+            className="auth-input"
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TextInput
+            className="auth-input"
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+          <AuthButton onPress={handleLogin} title="Login" />
 
-        <View className="flex flex-row justify-center mt-5">
-          <Text className="text-lg text-gray-700">Don't have an account? </Text>
-          <StyledLink href="/(auth)/signUp" title="Sign Up" />
+          <View className="flex flex-row justify-center mt-5">
+            <Text className="text-lg text-gray-700">
+              Don't have an account?{" "}
+            </Text>
+            <StyledLink href="/(auth)/signUp" title="Sign Up" />
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

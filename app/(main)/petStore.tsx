@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, FlatList } from "react-native";
-import { useAuthStore } from "@/store/authStore";
 import appwriteClient, {
   DATABASE_ID,
-  databases,
   PETITEM_TABLE,
+  tablesDB,
   USERS_TABLE,
 } from "@/lib/appwrite";
 import { IUser, IPetItem } from "@/types";
@@ -12,27 +11,29 @@ import { useFocusEffect } from "expo-router";
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PetItemCard from "@/components/PetItemCard";
-import { useUiStore } from "@/store/uiStore";
+import { useAuthStore } from "@/store/authStore";
 
 export default function PetStoreScreen() {
   const user = useAuthStore((s) => s.user);
-  const setLoading = useUiStore((s) => s.setLoading);
+  const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<IUser | null>(null);
   const [items, setItems] = useState<IPetItem[]>([]);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
+
     try {
       setLoading(true);
-      const userProfilePromise = databases.getDocument(
-        DATABASE_ID,
-        USERS_TABLE,
-        user.$id,
-      );
-      const storeItemsPromise = databases.listDocuments(
-        DATABASE_ID,
-        PETITEM_TABLE,
-      );
+
+      const userProfilePromise = tablesDB.getRow({
+        databaseId: DATABASE_ID,
+        tableId: USERS_TABLE,
+        rowId: user.$id,
+      });
+      const storeItemsPromise = tablesDB.listRows({
+        databaseId: DATABASE_ID,
+        tableId: PETITEM_TABLE,
+      });
 
       const [userProfile, storeItems] = await Promise.all([
         userProfilePromise,
@@ -40,7 +41,7 @@ export default function PetStoreScreen() {
       ]);
 
       setProfile(userProfile as unknown as IUser);
-      setItems(storeItems.documents as unknown as IPetItem[]);
+      setItems(storeItems.rows as unknown as IPetItem[]);
     } catch (error) {
       console.error("Failed to fetch store data:", error);
       Toast.show({ type: "error", text1: "Could not load store." });
@@ -81,16 +82,17 @@ export default function PetStoreScreen() {
         keyExtractor={(item) => item.$id}
         numColumns={2}
         ListHeaderComponent={
-          <View className="p-4">
+          <View className="flex-row items-center justify-between">
             <Text className="text-3xl font-bold">Pet Store</Text>
-            <View className="p-3 bg-yellow-200 border border-yellow-300 rounded-lg mt-4">
-              <Text className="text-xl font-bold text-yellow-700">
-                Your Treats: {userTreats}
+            <View className="">
+              <Text className="text-2xl font-bold text-yellow-700">
+                <Text className="text-gray-900">Treats: </Text>
+                {userTreats}
               </Text>
             </View>
           </View>
         }
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerClassName="pb-5"
       />
     </SafeAreaView>
   );

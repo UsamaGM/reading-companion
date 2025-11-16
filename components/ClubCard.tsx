@@ -5,7 +5,7 @@ import { Text, TouchableOpacity } from "react-native";
 export default function ClubCard({ item }: { item: IClub }) {
   const handlePress = () => {
     router.push({
-      pathname: "/(main)/clubDetail",
+      pathname: "/(main)/clubDetails",
       params: { clubId: item.$id },
     });
   };

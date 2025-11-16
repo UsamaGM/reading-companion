@@ -1,31 +1,22 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { Text, TextInput, KeyboardAvoidingView, Platform } from "react-native";
 import { useAuthStore } from "@/store/authStore";
-import { useUiStore } from "@/store/uiStore";
 import {
   CLUBMEMBER_TABLE,
   CLUBS_TABLE,
   DATABASE_ID,
-  databases,
+  tablesDB,
 } from "@/lib/appwrite";
 import { router } from "expo-router";
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import { IClub, IClubMembers, IUser } from "@/types";
+import { IClub, IClubMembers } from "@/types";
 import { ID, Query } from "react-native-appwrite";
-import AuthButton from "@/components/AuthButton";
+import StyledButton from "@/components/StyledButton";
 
 export default function JoinClubScreen() {
   const user = useAuthStore((s) => s.user);
-  const setLoading = useUiStore((s) => s.setLoading);
+  const [loading, setLoading] = useState(false);
   const [inviteCode, setInviteCode] = useState("");
 
   const handleSubmit = async () => {
@@ -37,18 +28,24 @@ export default function JoinClubScreen() {
     try {
       setLoading(true);
 
+      const clubPromise = tablesDB.listRows({
+        databaseId: DATABASE_ID,
+        tableId: CLUBS_TABLE,
+        queries: [Query.equal("inviteCode", inviteCode.trim())],
+      });
+      const memberPromise = tablesDB.listRows({
+        databaseId: DATABASE_ID,
+        tableId: CLUBMEMBER_TABLE,
+        queries: [Query.equal("userId", user.$id)],
+      });
+
       const [clubs, memberEntries] = await Promise.all([
-        databases.listDocuments(DATABASE_ID, CLUBS_TABLE, [
-          Query.equal("inviteCode", inviteCode.trim()),
-        ]),
-        databases.listDocuments(DATABASE_ID, CLUBMEMBER_TABLE, [
-          Query.equal("userId", user.$id),
-        ]),
+        clubPromise,
+        memberPromise,
       ]);
 
-      const club = clubs.documents[0] as unknown as IClub;
-      const clubsWhereMember =
-        memberEntries.documents as unknown as IClubMembers[];
+      const club = clubs.rows[0] as unknown as IClub;
+      const clubsWhereMember = memberEntries.rows as unknown as IClubMembers[];
 
       if (clubsWhereMember.some((c) => c.clubId == club.$id)) {
         Toast.show({
@@ -60,15 +57,17 @@ export default function JoinClubScreen() {
         return;
       }
 
-      await databases.createDocument(
-        DATABASE_ID,
-        CLUBMEMBER_TABLE,
-        ID.unique(),
-        {
-          userId: user.$id,
-          clubId: club.$id,
-        },
-      );
+      const newClubData = {
+        userId: user.$id,
+        clubId: club.$id,
+      };
+
+      await tablesDB.createRow({
+        databaseId: DATABASE_ID,
+        tableId: CLUBMEMBER_TABLE,
+        rowId: ID.unique(),
+        data: newClubData,
+      });
 
       Toast.show({
         type: "success",
@@ -93,23 +92,25 @@ export default function JoinClubScreen() {
     <SafeAreaView className="safe-area-container">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
+        className="flex-1 p-4"
       >
-        <StatusBar style="dark" />
-        <View className="p-4">
-          <Text className="text-3xl font-bold mb-6">Join a Club</Text>
+        <Text className="text-3xl font-bold mb-6">Join a Club</Text>
 
-          <Text className="text-lg font-semibold mb-2">Invite Code</Text>
-          <TextInput
-            value={inviteCode}
-            onChangeText={setInviteCode}
-            placeholder="Enter the club ID"
-            autoCapitalize="none"
-            className="bg-white p-3 rounded-lg border border-gray-300 mb-6 text-base"
-          />
+        <Text className="text-lg font-semibold mb-2">Invite Code</Text>
+        <TextInput
+          value={inviteCode}
+          onChangeText={setInviteCode}
+          placeholder="Enter the club ID"
+          autoCapitalize="none"
+          className="bg-white p-3 rounded-lg border border-gray-300 mb-6 text-base"
+        />
 
-          <AuthButton title="Join Club" onPress={handleSubmit} />
-        </View>
+        <StyledButton
+          title="Join Club"
+          onPress={handleSubmit}
+          loading={loading}
+          disabled={loading}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

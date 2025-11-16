@@ -1,21 +1,19 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { DATABASE_ID, databases, USERBOOK_TABLE } from "@/lib/appwrite";
+import { DATABASE_ID, tablesDB, USERBOOK_TABLE } from "@/lib/appwrite";
 import type { IUserBook } from "@/types";
 import LogSessionModal from "@/components/LogSessionModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ProgressBar from "@/components/ProgressBar";
-import { useUiStore } from "@/store/uiStore";
 import { AppwriteException } from "react-native-appwrite";
 import Toast from "react-native-toast-message";
-import { StatusBar } from "expo-status-bar";
-import AuthButton from "@/components/AuthButton";
+import StyledButton from "@/components/StyledButton";
 
 export default function BookDetailScreen() {
   const { bookId } = useLocalSearchParams<{ bookId: string }>();
-  const setLoading = useUiStore((s) => s.setLoading);
 
+  const [loading, setLoading] = useState(true);
   const [book, setBook] = useState<IUserBook | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -23,11 +21,11 @@ export default function BookDetailScreen() {
     if (!bookId) return;
     try {
       setLoading(true);
-      const document = (await databases.getDocument(
-        DATABASE_ID,
-        USERBOOK_TABLE,
-        bookId,
-      )) as unknown as IUserBook;
+      const document = (await tablesDB.getRow({
+        databaseId: DATABASE_ID,
+        tableId: USERBOOK_TABLE,
+        rowId: bookId,
+      })) as unknown as IUserBook;
 
       setBook(document);
     } catch (error) {
@@ -57,20 +55,19 @@ export default function BookDetailScreen() {
 
   return (
     <SafeAreaView className="safe-area-container">
-      <StatusBar style="dark" />
-      <View className="p-4">
-        <Text className="text-3xl font-bold">{book.title}</Text>
-        <Text className="text-lg text-gray-600 mt-2">
-          Page {book.currentPage} of {book.totalPages}
-        </Text>
+      <Text className="text-3xl font-bold">{book.title}</Text>
+      <Text className="text-lg text-gray-600 mt-2">
+        Page {book.currentPage} of {book.totalPages}
+      </Text>
 
-        <ProgressBar current={book.currentPage} total={book.totalPages} />
+      <ProgressBar current={book.currentPage} total={book.totalPages} />
 
-        <AuthButton
-          title="Log Reading Session"
-          onPress={() => setModalVisible(true)}
-        />
-      </View>
+      <StyledButton
+        loading={loading}
+        disabled={loading}
+        title="Log Reading Session"
+        onPress={() => setModalVisible(true)}
+      />
 
       <LogSessionModal
         visible={modalVisible}
