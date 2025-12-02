@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, FlatList } from "react-native";
+import PetItemCard from "@/components/PetItemCard";
 import appwriteClient, {
   DATABASE_ID,
   PETITEM_TABLE,
   tablesDB,
   USERS_TABLE,
 } from "@/lib/appwrite";
-import { IUser, IPetItem } from "@/types";
-import { useFocusEffect } from "expo-router";
-import Toast from "react-native-toast-message";
-import { SafeAreaView } from "react-native-safe-area-context";
-import PetItemCard from "@/components/PetItemCard";
 import { useAuthStore } from "@/store/authStore";
+import { IPetItem, IUser } from "@/types";
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import { FlatList, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function PetStoreScreen() {
   const user = useAuthStore((s) => s.user);
@@ -54,13 +54,13 @@ export default function PetStoreScreen() {
     useCallback(() => {
       setLoading(true);
       fetchData();
-    }, [fetchData]),
+    }, [fetchData])
   );
 
   useEffect(() => {
     if (!user) return;
 
-    const channel = `databases.${DATABASE_ID}.tabels.${USERS_TABLE}.rows.${user.$id}`;
+    const channel = `databases.${DATABASE_ID}.tables.${USERS_TABLE}.rows.${user.$id}`;
     const unsubscribe = appwriteClient.subscribe(channel, (response) => {
       setProfile(response.payload as IUser);
     });

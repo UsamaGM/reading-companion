@@ -1,4 +1,4 @@
-import { functions } from "@/lib/appwrite";
+import { functions, PURCHASE_PETITEM_FN_ID } from "@/lib/appwrite";
 import { IPetItem } from "@/types";
 import { useState } from "react";
 import { Image, Text, View } from "react-native";
@@ -20,7 +20,7 @@ export default function PetItemCard({
     try {
       setLoading(true);
       const response = await functions.createExecution({
-        functionId: "purchasePetItem",
+        functionId: PURCHASE_PETITEM_FN_ID,
         body: JSON.stringify({ itemId: item.$id }),
       });
 

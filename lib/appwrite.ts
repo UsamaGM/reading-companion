@@ -1,6 +1,6 @@
 import {
-    Client,
     Account,
+    Client,
     Databases,
     Functions,
     TablesDB,
@@ -33,5 +33,8 @@ export const CLUBMEMBER_TABLE = "clubmembers";
 export const PETTYPE_TABLE = "pettypes";
 export const USERPET_TABLE = "userpets";
 export const PETITEM_TABLE = "petitems";
+
+// Functions
+export const PURCHASE_PETITEM_FN_ID = process.env.EXPO_PUBLIC_PURCHASE_PETITEM_FN_ID!;
 
 export default client;

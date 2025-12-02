@@ -1,5 +1,5 @@
-import { Tabs } from "expo-router";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { Tabs } from "expo-router";
 
 export default function MainAppLayout() {
   return (
@@ -14,7 +14,7 @@ export default function MainAppLayout() {
         }}
       />
       <Tabs.Screen
-        name="clubs"
+        name="(club)/clubs"
         options={{
           title: "Clubs",
           tabBarIcon: ({ color }) => (
@@ -24,7 +24,7 @@ export default function MainAppLayout() {
       />
 
       <Tabs.Screen
-        name="petStore"
+        name="(pet)/petStore"
         options={{
           title: "Store",
           tabBarIcon: ({ color }) => (
@@ -34,7 +34,7 @@ export default function MainAppLayout() {
       />
 
       <Tabs.Screen
-        name="profile"
+        name="(profile)/index"
         options={{
           title: "Profile",
           tabBarIcon: ({ color }) => (
@@ -43,25 +43,28 @@ export default function MainAppLayout() {
         }}
       />
 
-      <Tabs.Screen name="addBook" options={{ href: null, title: "Add Book" }} />
       <Tabs.Screen
-        name="bookDetails"
+        name="(book)/addBook"
+        options={{ href: null, title: "Add Book" }}
+      />
+      <Tabs.Screen
+        name="(book)/bookDetails"
         options={{ href: null, title: "Book Details" }}
       />
       <Tabs.Screen
-        name="createClub"
+        name="(club)/createClub"
         options={{ href: null, title: "Create Club" }}
       />
       <Tabs.Screen
-        name="joinClub"
+        name="(club)/joinClub"
         options={{ href: null, title: "Join Club" }}
       />
       <Tabs.Screen
-        name="clubDetails"
+        name="(club)/clubDetails"
         options={{ href: null, title: "Club Details" }}
       />
       <Tabs.Screen
-        name="petOnboarding"
+        name="(pet)/petOnboarding"
         options={{ href: null, title: "Adopt Pet" }}
       />
     </Tabs>

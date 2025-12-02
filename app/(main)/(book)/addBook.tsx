@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { Text, TextInput, KeyboardAvoidingView, Platform } from "react-native";
-import { useAuthStore } from "@/store/authStore";
+import StyledButton from "@/components/StyledButton";
 import { DATABASE_ID, tablesDB, USERBOOK_TABLE } from "@/lib/appwrite";
-import { AppwriteException, ID } from "react-native-appwrite";
+import { useAuthStore } from "@/store/authStore";
 import { router } from "expo-router";
+import React, { useState } from "react";
+import { KeyboardAvoidingView, Platform, Text, TextInput } from "react-native";
+import { AppwriteException, ID } from "react-native-appwrite";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import StyledButton from "@/components/StyledButton";
 
 export default function AddBookScreen() {
   const user = useAuthStore((s) => s.user);
@@ -58,6 +58,9 @@ export default function AddBookScreen() {
         text1: "Book Added!",
         text2: `${title} has been added to your bookshelf.`,
       });
+
+      setTitle("");
+      setTotalPages("");
 
       router.back();
     } catch (error: any) {
